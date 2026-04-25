@@ -133,3 +133,73 @@ insert into users (email, name, role, password_hash) values (
   'director',
   '$2b$10$rQZ9vPJydMjXW3gT4kV8/.K9HxTGQ7TlhwFQH/0JMwZFBj2n.Oiyu'
 ) on conflict (email) do nothing;
+
+-- ── Schema v2: Projects + Phases ──────────────────────────────────────────────
+
+create table if not exists projects (
+  id uuid primary key default uuid_generate_v4(),
+  lead_id text references leads(id) on delete set null,
+  name text not null,
+  description text,
+  client_name text,
+  client_email text,
+  client_phone text,
+  site_address text,
+  project_type text,
+  contract_value numeric default 0,
+  assigned_director uuid references users(id),
+  status text default 'Active' check (status in ('Active','On Hold','Complete','Cancelled')),
+  start_date date,
+  target_end_date date,
+  actual_end_date date,
+  notes text,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+create table if not exists project_phases (
+  id uuid primary key default uuid_generate_v4(),
+  project_id uuid references projects(id) on delete cascade,
+  phase_name text not null check (phase_name in (
+    'Site Inspection',
+    'Preliminary Design',
+    'Preliminary Delivery',
+    'Design Review',
+    'Final Design',
+    'Final Delivery',
+    'Construction Support',
+    'Project Complete'
+  )),
+  phase_order integer not null,
+  status text default 'Pending' check (status in ('Pending','In Progress','Complete','Blocked','Skipped')),
+  assigned_to uuid references users(id),
+  due_date date,
+  completed_date date,
+  calendar_event_id text,
+  notes text,
+  deliverable_notes text,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+create index if not exists projects_lead_id_idx on projects(lead_id);
+create index if not exists projects_status_idx on projects(status);
+create index if not exists project_phases_project_id_idx on project_phases(project_id);
+create index if not exists project_phases_assigned_to_idx on project_phases(assigned_to);
+create index if not exists project_phases_due_date_idx on project_phases(due_date);
+
+create trigger projects_updated_at
+  before update on projects
+  for each row execute function update_updated_at();
+
+create trigger project_phases_updated_at
+  before update on project_phases
+  for each row execute function update_updated_at();
+
+alter table projects enable row level security;
+alter table project_phases enable row level security;
+
+create policy "Service role full access - projects" on projects
+  for all using (auth.role() = 'service_role');
+create policy "Service role full access - project_phases" on project_phases
+  for all using (auth.role() = 'service_role');

@@ -64,13 +64,14 @@ const NAV_ITEMS = [
   { id: 'import', label: 'Import', icon: '⊕' },
   { id: 'leads', label: 'Leads', icon: '≡' },
   { id: 'pipeline', label: 'Pipeline', icon: '◧' },
+  { id: 'projects', label: 'Projects', icon: '◉' },
   { id: 'email', label: 'Email', icon: '✉' },
   { id: 'assign', label: 'Assign', icon: '◈' },
   { id: 'alerts', label: 'Alerts', icon: '⚑' },
   { id: 'financial', label: 'Financial', icon: '£' },
   { id: 'apisetup', label: 'API Setup', icon: '⚙' },
 ];
-const BOTTOM_NAV = ['dashboard','import','leads','email','alerts'];
+const BOTTOM_NAV = ['dashboard','leads','projects','email','alerts'];
 
 // ── Toast ─────────────────────────────────────────────────────────────────────
 function useToast() {
@@ -169,6 +170,23 @@ function LoginScreen({ onLogin }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Handle Microsoft OAuth redirect back
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const msToken = params.get('ms_token');
+    const authError = params.get('auth_error');
+    if (msToken) {
+      localStorage.setItem('dvc_token', msToken);
+      try { const payload = JSON.parse(atob(msToken.split('.')[1])); onLogin(msToken, payload); } catch {}
+      window.history.replaceState({}, '', '/');
+    }
+    if (authError) {
+      const msgs = { unauthorized_domain: 'Only @dvceng.com accounts are allowed.', invalid_state: 'Login session expired — please try again.', token_exchange_failed: 'Microsoft login failed — please try again.' };
+      setError(msgs[authError] || `Login error: ${authError}`);
+      window.history.replaceState({}, '', '/');
+    }
+  }, [onLogin]);
+
   async function handleSubmit(e) {
     e.preventDefault();
     setLoading(true); setError('');
@@ -187,6 +205,22 @@ function LoginScreen({ onLogin }) {
       <div style={{ marginBottom: 32 }}><Wordmark size={28} /></div>
       <div className="surface" style={{ width: '100%', maxWidth: 380, padding: 32 }}>
         <p style={{ margin: '0 0 24px', fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#8a96a8', textAlign: 'center' }}>Client Intelligence Platform</p>
+
+        {/* Microsoft SSO */}
+        <a href="/api/auth/microsoft"
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, width: '100%', padding: '10px 18px', borderRadius: 7, border: '1.5px solid #E4E0D8', background: '#fff', color: '#0A1628', fontSize: 14, fontWeight: 600, fontFamily: "'Barlow', sans-serif", textDecoration: 'none', marginBottom: 16, transition: '150ms all', cursor: 'pointer' }}
+          onMouseEnter={e => e.currentTarget.style.borderColor = '#0A1628'}
+          onMouseLeave={e => e.currentTarget.style.borderColor = '#E4E0D8'}>
+          <svg width="18" height="18" viewBox="0 0 21 21"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>
+          Sign in with Microsoft 365
+        </a>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+          <div style={{ flex: 1, height: 1, background: '#E4E0D8' }} />
+          <span style={{ fontSize: 11, color: '#8a96a8', textTransform: 'uppercase', letterSpacing: '0.06em' }}>or</span>
+          <div style={{ flex: 1, height: 1, background: '#E4E0D8' }} />
+        </div>
+
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: 14 }}>
             <label className="t-label" style={{ display: 'block', marginBottom: 6 }}>Email</label>
@@ -1091,6 +1125,272 @@ function ApiSetupView() {
   );
 }
 
+// ── Projects ──────────────────────────────────────────────────────────────────
+const PHASES = ['Site Inspection','Preliminary Design','Preliminary Delivery','Design Review','Final Design','Final Delivery','Construction Support','Project Complete'];
+const PHASE_COLORS = { 'Site Inspection':'#0A1628','Preliminary Design':'#3d4f6b','Preliminary Delivery':'#F4822A','Design Review':'#b86c00','Final Design':'#0A1628','Final Delivery':'#1a8a4a','Construction Support':'#3d4f6b','Project Complete':'#1a8a4a' };
+const PHASE_ICONS = { 'Site Inspection':'🔍','Preliminary Design':'📐','Preliminary Delivery':'📦','Design Review':'💬','Final Design':'📏','Final Delivery':'✅','Construction Support':'🏗️','Project Complete':'🎉' };
+const STATUS_PHASE_COLOR = { 'Pending':'#E4E0D8','In Progress':'#F4822A','Complete':'#1a8a4a','Blocked':'#c0392b','Skipped':'#8a96a8' };
+
+function PhaseCard({ phase, users, token, projectId, onUpdate }) {
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState({ status: phase.status, due_date: phase.due_date || '', assigned_to: phase.assigned_to || '', notes: phase.notes || '', deliverable_notes: phase.deliverable_notes || '' });
+  const [saving, setSaving] = useState(false);
+  const engineer = users.find(u => u.id === phase.assigned_to);
+
+  async function save() {
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/projects/${projectId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ phase_id: phase.id, ...form }) });
+      const data = await res.json();
+      onUpdate(data);
+      setEditing(false);
+    } catch {}
+    finally { setSaving(false); }
+  }
+
+  const statusCol = STATUS_PHASE_COLOR[phase.status] || '#E4E0D8';
+
+  return (
+    <div style={{ background: '#fff', border: `1px solid #E4E0D8`, borderLeft: `4px solid ${statusCol}`, borderRadius: 8, padding: '14px 16px', marginBottom: 8 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 18 }}>{PHASE_ICONS[phase.phase_name]}</span>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: '#0A1628' }}>{phase.phase_name}</div>
+            <div style={{ fontSize: 12, color: '#8a96a8', marginTop: 2 }}>
+              {engineer ? engineer.name : 'Unassigned'} {phase.due_date ? `· Due ${fmtDate(phase.due_date)}` : ''}
+            </div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 6, background: phase.status === 'Complete' ? '#edf7f2' : phase.status === 'In Progress' ? '#FEF0E6' : phase.status === 'Blocked' ? '#fdf1f0' : '#F8F7F5', color: statusCol }}>{phase.status}</span>
+          <button onClick={() => setEditing(!editing)} style={{ border: 'none', background: 'transparent', fontSize: 14, cursor: 'pointer', color: '#8a96a8' }}>✎</button>
+        </div>
+      </div>
+      {editing && (
+        <div style={{ marginTop: 14, padding: '14px', background: '#F8F7F5', borderRadius: 7 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+            <div>
+              <label className="t-label" style={{ display: 'block', marginBottom: 4 }}>Status</label>
+              <select className="field" value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))}>
+                {['Pending','In Progress','Complete','Blocked','Skipped'].map(s => <option key={s}>{s}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="t-label" style={{ display: 'block', marginBottom: 4 }}>Due Date</label>
+              <input className="field" type="date" value={form.due_date} onChange={e => setForm(f => ({ ...f, due_date: e.target.value }))} />
+            </div>
+            <div>
+              <label className="t-label" style={{ display: 'block', marginBottom: 4 }}>Assign Engineer</label>
+              <select className="field" value={form.assigned_to} onChange={e => setForm(f => ({ ...f, assigned_to: e.target.value }))}>
+                <option value="">— unassigned —</option>
+                {users.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+              </select>
+            </div>
+          </div>
+          <div style={{ marginBottom: 10 }}>
+            <label className="t-label" style={{ display: 'block', marginBottom: 4 }}>Notes</label>
+            <textarea className="field" rows={2} value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} style={{ resize: 'vertical' }} />
+          </div>
+          {(form.status === 'Complete' || phase.status === 'Complete') && (
+            <div style={{ marginBottom: 10 }}>
+              <label className="t-label" style={{ display: 'block', marginBottom: 4 }}>Deliverable Notes (sent to client)</label>
+              <textarea className="field" rows={2} value={form.deliverable_notes} onChange={e => setForm(f => ({ ...f, deliverable_notes: e.target.value }))} placeholder="e.g. Preliminary drawings and calculations attached…" style={{ resize: 'vertical' }} />
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button className="btn btn-primary" onClick={save} disabled={saving} style={{ fontSize: 13 }}>{saving ? 'Saving…' : 'Save'}</button>
+            <button className="btn btn-ghost" onClick={() => setEditing(false)} style={{ fontSize: 13 }}>Cancel</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ProjectDetail({ project, users, token, onUpdate, onBack }) {
+  const phases = [...(project.project_phases || [])].sort((a, b) => a.phase_order - b.phase_order);
+  const complete = phases.filter(p => p.status === 'Complete').length;
+  const progress = phases.length ? Math.round((complete / phases.length) * 100) : 0;
+
+  function handlePhaseUpdate(updatedPhase) {
+    const updatedProject = { ...project, project_phases: project.project_phases.map(p => p.id === updatedPhase.id ? updatedPhase : p) };
+    onUpdate(updatedProject);
+  }
+
+  return (
+    <div className="fade-up">
+      <button onClick={onBack} className="btn btn-ghost" style={{ marginBottom: 16, fontSize: 13 }}>← Back to Projects</button>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
+            <div style={{ width: 32, height: 3, background: '#F4822A', borderRadius: 2 }} />
+            <h1 style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 26, color: '#0A1628', margin: 0 }}>{project.name}</h1>
+          </div>
+          <div style={{ fontSize: 13, color: '#8a96a8', marginLeft: 44 }}>{project.site_address} · {project.project_type}</div>
+        </div>
+        <span style={{ padding: '5px 14px', borderRadius: 7, fontSize: 13, fontWeight: 600, background: project.status === 'Complete' ? '#edf7f2' : project.status === 'Active' ? '#FEF0E6' : '#F8F7F5', color: project.status === 'Complete' ? '#1a8a4a' : project.status === 'Active' ? '#F4822A' : '#8a96a8' }}>{project.status}</span>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 12, marginBottom: 20 }}>
+        <StatCard label="Contract Value" value={fmtCcy(project.contract_value)} />
+        <StatCard label="Progress" value={`${progress}%`} accent={progress === 100 ? '#1a8a4a' : '#F4822A'} />
+        <StatCard label="Client" value={project.client_name || '—'} />
+        <StatCard label="Target End" value={fmtDate(project.target_end_date)} />
+      </div>
+      <div style={{ marginBottom: 16 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+          <span className="t-label">Overall Progress</span>
+          <span style={{ fontSize: 12, fontWeight: 600, color: '#F4822A' }}>{complete}/{phases.length} phases</span>
+        </div>
+        <div className="bar-track" style={{ height: 8 }}>
+          <div className="bar-fill bar-fill-hot" style={{ width: `${progress}%`, transition: 'width 600ms ease' }} />
+        </div>
+      </div>
+      <div className="t-heading" style={{ marginBottom: 14 }}>Project Phases</div>
+      {phases.map(phase => (
+        <PhaseCard key={phase.id} phase={phase} users={users} token={token} projectId={project.id} onUpdate={handlePhaseUpdate} />
+      ))}
+    </div>
+  );
+}
+
+function ProjectsView({ leads, users, token, addToast }) {
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState(null);
+  const [creating, setCreating] = useState(false);
+  const [form, setForm] = useState({ name: '', lead_id: '', client_name: '', client_email: '', client_phone: '', site_address: '', project_type: '', contract_value: '', assigned_director: '', start_date: '', target_end_date: '', notes: '' });
+
+  const authFetch = (url, opts = {}) => fetch(url, { ...opts, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, ...(opts.headers || {}) } });
+
+  useEffect(() => {
+    authFetch('/api/projects').then(r => r.json()).then(d => { if (Array.isArray(d)) setProjects(d); }).catch(() => {}).finally(() => setLoading(false));
+  }, [token]);
+
+  async function handleCreate(e) {
+    e.preventDefault();
+    try {
+      const res = await authFetch('/api/projects', { method: 'POST', body: JSON.stringify(form) });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to create project');
+      setProjects(ps => [data, ...ps]);
+      setCreating(false);
+      setSelected(data);
+      addToast('Project created', 'success');
+    } catch (err) { addToast(err.message, 'error'); }
+  }
+
+  function handleProjectUpdate(updated) {
+    setProjects(ps => ps.map(p => p.id === updated.id ? updated : p));
+    setSelected(updated);
+  }
+
+  function prefillFromLead(leadId) {
+    const lead = leads.find(l => l.id === leadId);
+    if (lead) setForm(f => ({ ...f, lead_id: leadId, name: `${lead.project_type} — ${lead.site_address}`, site_address: lead.site_address, project_type: lead.project_type, client_name: lead.contact_name || '', client_email: lead.email || '', client_phone: lead.phone || '', contract_value: lead.estimated_fee || '' }));
+  }
+
+  if (selected) return <ProjectDetail project={selected} users={users} token={token} onUpdate={handleProjectUpdate} onBack={() => setSelected(null)} />;
+
+  const statusGroups = { Active: projects.filter(p => p.status === 'Active'), 'On Hold': projects.filter(p => p.status === 'On Hold'), Complete: projects.filter(p => p.status === 'Complete') };
+
+  return (
+    <div className="fade-up">
+      <PageHeader title="Projects" subtitle={`${projects.length} structural engineering projects`} />
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 20 }}>
+        <button className="btn btn-orange" onClick={() => setCreating(true)}>+ New Project</button>
+      </div>
+
+      {creating && (
+        <div className="surface" style={{ padding: 24, marginBottom: 24 }}>
+          <div className="t-heading" style={{ marginBottom: 16 }}>New Project</div>
+          <form onSubmit={handleCreate}>
+            <div style={{ marginBottom: 14 }}>
+              <label className="t-label" style={{ display: 'block', marginBottom: 6 }}>Link from Lead (optional)</label>
+              <select className="field" value={form.lead_id} onChange={e => { setForm(f => ({ ...f, lead_id: e.target.value })); prefillFromLead(e.target.value); }}>
+                <option value="">— create standalone —</option>
+                {leads.filter(l => l.stage === 'Won' || l.stage === 'In Progress' || l.stage === 'Survey Booked').map(l => <option key={l.id} value={l.id}>{l.site_address || l.lpa_app_no} ({l.lpa_name})</option>)}
+              </select>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+              {[['Project Name *','name','text'],['Site Address','site_address','text'],['Client Name','client_name','text'],['Client Email','client_email','email'],['Client Phone','client_phone','tel'],['Project Type','project_type','text'],['Contract Value (£)','contract_value','number'],['Target End Date','target_end_date','date']].map(([label, key, type]) => (
+                <div key={key}>
+                  <label className="t-label" style={{ display: 'block', marginBottom: 4 }}>{label}</label>
+                  <input className="field" type={type} value={form[key]} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))} required={key === 'name'} />
+                </div>
+              ))}
+            </div>
+            <div style={{ marginBottom: 14 }}>
+              <label className="t-label" style={{ display: 'block', marginBottom: 6 }}>Assign Director / Lead Engineer</label>
+              <select className="field" value={form.assigned_director} onChange={e => setForm(f => ({ ...f, assigned_director: e.target.value }))}>
+                <option value="">— select —</option>
+                {users.map(u => <option key={u.id} value={u.id}>{u.name} ({u.role})</option>)}
+              </select>
+            </div>
+            <div style={{ marginBottom: 16 }}>
+              <label className="t-label" style={{ display: 'block', marginBottom: 4 }}>Notes</label>
+              <textarea className="field" rows={3} value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} style={{ resize: 'vertical' }} />
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button className="btn btn-primary" type="submit">Create Project</button>
+              <button className="btn btn-ghost" type="button" onClick={() => setCreating(false)}>Cancel</button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {loading && <div style={{ color: '#8a96a8', padding: 32, textAlign: 'center' }}>Loading projects…</div>}
+
+      {!loading && projects.length === 0 && (
+        <div className="surface" style={{ padding: 40, textAlign: 'center', color: '#8a96a8' }}>
+          <div style={{ fontSize: 32, marginBottom: 12 }}>◉</div>
+          <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 18, marginBottom: 8 }}>No projects yet</div>
+          <p style={{ fontSize: 14, margin: '0 0 20px' }}>Convert a Won lead into a project to start tracking phases.</p>
+          <button className="btn btn-orange" onClick={() => setCreating(true)}>Create First Project</button>
+        </div>
+      )}
+
+      {Object.entries(statusGroups).map(([status, items]) => items.length > 0 && (
+        <div key={status} style={{ marginBottom: 28 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+            <div style={{ width: 4, height: 18, background: status === 'Active' ? '#F4822A' : status === 'Complete' ? '#1a8a4a' : '#8a96a8', borderRadius: 2 }} />
+            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: 16, color: '#0A1628' }}>{status}</span>
+            <span style={{ fontSize: 12, color: '#8a96a8', background: '#F8F7F5', border: '1px solid #E4E0D8', borderRadius: 5, padding: '2px 8px' }}>{items.length}</span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 12 }}>
+            {items.map(project => {
+              const phases = project.project_phases || [];
+              const done = phases.filter(p => p.status === 'Complete').length;
+              const pct = phases.length ? Math.round((done / phases.length) * 100) : 0;
+              const currentPhase = phases.find(p => p.status === 'In Progress') || phases.find(p => p.status === 'Pending');
+              return (
+                <div key={project.id} className="surface" onClick={() => setSelected(project)}
+                  style={{ padding: '18px 20px', cursor: 'pointer', transition: '150ms all' }}
+                  onMouseEnter={e => e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)'}
+                  onMouseLeave={e => e.currentTarget.style.boxShadow = ''}>
+                  <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: 16, color: '#0A1628', marginBottom: 4 }}>{project.name}</div>
+                  <div style={{ fontSize: 12, color: '#8a96a8', marginBottom: 12 }}>{project.site_address} {project.client_name ? `· ${project.client_name}` : ''}</div>
+                  <div style={{ marginBottom: 10 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <span style={{ fontSize: 12, color: '#3d4f6b' }}>{currentPhase ? `${PHASE_ICONS[currentPhase.phase_name]} ${currentPhase.phase_name}` : 'Not started'}</span>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: '#F4822A' }}>{pct}%</span>
+                    </div>
+                    <div className="bar-track"><div className="bar-fill bar-fill-hot" style={{ width: `${pct}%` }} /></div>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: 13, fontWeight: 600 }}>{fmtCcy(project.contract_value)}</span>
+                    <span style={{ fontSize: 11, color: '#8a96a8' }}>{done}/{phases.length} phases</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ── Main App ──────────────────────────────────────────────────────────────────
 export default function Home() {
   const [token, setToken] = useState(null);
@@ -1158,6 +1458,7 @@ export default function Home() {
       case 'import': return <ImportView token={token} onImported={onImported} addToast={addToast} />;
       case 'leads': return <LeadsView leads={leads} setLeads={setLeads} token={token} onCompose={onCompose} onAssign={onAssign} addToast={addToast} />;
       case 'pipeline': return <PipelineView leads={leads} />;
+      case 'projects': return <ProjectsView leads={leads} users={users} token={token} addToast={addToast} />;
       case 'email': return <EmailView leads={leads} token={token} initialLead={composeTarget} addToast={addToast} />;
       case 'assign': return <AssignView leads={leads} users={users} token={token} initialLead={assignTarget} addToast={addToast} />;
       case 'alerts': return <AlertsView leads={leads} onCompose={onCompose} onAssign={onAssign} />;
