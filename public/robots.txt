@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Block internal CRM and API routes
+Disallow: /api/
+Disallow: /dashboard
+
+Sitemap: https://dvceng.com/sitemap.xml
