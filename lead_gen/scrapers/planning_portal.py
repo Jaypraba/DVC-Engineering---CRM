@@ -56,7 +56,7 @@ APPROVED_STATUSES = {
 }
 
 PLANNING_DATA_BASE = "https://www.planning.data.gov.uk"
-REQUEST_DELAY = 2.0          # seconds between domain requests
+REQUEST_DELAY = 1.0          # seconds between domain requests
 LOOKBACK_DAYS = 90
 
 _cache = CacheManager("planning_portal")

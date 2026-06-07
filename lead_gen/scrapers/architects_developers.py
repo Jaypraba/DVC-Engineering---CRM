@@ -33,7 +33,7 @@ from lead_gen.models import Lead
 
 logger = logging.getLogger(__name__)
 
-REQUEST_DELAY = 2.0
+REQUEST_DELAY = 1.0
 USER_AGENT = "DVCLeadBot/1.0 (structural engineering research; contact jesan@dvceng.com)"
 
 PROPERTY_SIC_CODES = ["41100", "41202", "68100", "68209"]
