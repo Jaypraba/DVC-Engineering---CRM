@@ -1,0 +1,49 @@
+name: DVC Lead Generation Pipeline
+
+on:
+  schedule:
+    - cron: '0 7 * * *'   # daily at 7am UTC (8am London BST / 7am GMT)
+  workflow_dispatch:        # allows manual trigger from GitHub app
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: lead_gen/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r lead_gen/requirements.txt
+
+      - name: Run lead generation pipeline
+        env:
+          ANTHROPIC_API_KEY:       ${{ secrets.ANTHROPIC_API_KEY }}
+          COMPANIES_HOUSE_API_KEY: ${{ secrets.COMPANIES_HOUSE_API_KEY }}
+          PLANNING_API_KEY:        ${{ secrets.PLANNING_API_KEY }}
+          PLD_API_HEADER:          ${{ secrets.PLD_API_HEADER }}
+          ATTIO_API_KEY:           ${{ secrets.ATTIO_API_KEY }}
+          CLICKUP_API_KEY:         ${{ secrets.CLICKUP_API_KEY }}
+          CLICKUP_LIST_ID:         ${{ secrets.CLICKUP_LIST_ID }}
+        run: python -m lead_gen.main --verbose
+
+      - name: Upload output files as artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lead-gen-output-${{ github.run_number }}
+          path: |
+            lead_gen/output/leads.json
+            lead_gen/output/leads.csv
+            lead_gen/output/outreach_drafts.json
+            lead_gen/output/summary_report.md
+            leads_log.txt
+          retention-days: 30
