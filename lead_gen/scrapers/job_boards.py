@@ -28,7 +28,7 @@ from lead_gen.models import Lead
 
 logger = logging.getLogger(__name__)
 
-REQUEST_DELAY = 2.5  # seconds between requests to each domain
+REQUEST_DELAY = 1.0  # seconds between requests to each domain
 USER_AGENT = "DVCLeadBot/1.0 (structural engineering research; contact jesan@dvceng.com)"
 
 TARGET_CATEGORIES = [

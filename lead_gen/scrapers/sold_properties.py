@@ -25,16 +25,14 @@ from lead_gen.models import Lead
 
 logger = logging.getLogger(__name__)
 
-REQUEST_DELAY = 2.0
+REQUEST_DELAY = 1.0
 USER_AGENT = "DVCLeadBot/1.0 (structural engineering research; contact jesan@dvceng.com)"
 LOOKBACK_DAYS = 60
 
 # Target London postcode prefixes (boroughs of interest)
 TARGET_POSTCODES = [
-    "SW", "SE", "E1", "E2", "E3", "E8", "E9", "E14",
-    "N1", "N4", "N5", "N7", "N16",
-    "W6", "W12", "W14",
-    "EC", "BR", "DA",
+    "SW", "SE", "E", "N1",
+    "W6", "EC", "BR", "DA",
 ]
 
 SPARQL_ENDPOINT = "https://landregistry.data.gov.uk/landregistry/query"
@@ -104,7 +102,7 @@ async def _run_sparql_query(
                 "User-Agent": USER_AGENT,
                 "Accept": "application/sparql-results+json, application/json",
             },
-            timeout=60,
+            timeout=20,
         )
         resp.raise_for_status()
         data = resp.json()
