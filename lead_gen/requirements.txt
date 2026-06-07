@@ -1,0 +1,18 @@
+# DVC Engineering Lead Generation Pipeline — Python dependencies
+# Install: pip install -r requirements.txt
+
+# HTTP client (async)
+httpx[http2]>=0.27.0
+
+# HTML parsing
+beautifulsoup4>=4.12.3
+lxml>=5.2.0         # fast BeautifulSoup parser
+
+# Anthropic API (outreach draft generation)
+anthropic>=0.30.0
+
+# Environment variable management
+python-dotenv>=1.0.0
+
+# Standard library backports / utilities (Python 3.12 already includes most)
+# No additional required
