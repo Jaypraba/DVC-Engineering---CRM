@@ -27,12 +27,11 @@ jobs:
       - name: Run lead generation pipeline
         env:
           ANTHROPIC_API_KEY:       ${{ secrets.ANTHROPIC_API_KEY }}
-          COMPANIES_HOUSE_API_KEY: ${{ secrets.COMPANIES_HOUSE_API_KEY }}
+          COMPANIES_HOUSE_API_KEY: dfb06e8b-8870-49b4-a42e-3f2e48c30dab
           PLANNING_API_KEY:        ${{ secrets.PLANNING_API_KEY }}
-          PLD_API_HEADER:          ${{ secrets.PLD_API_HEADER }}
           ATTIO_API_KEY:           ${{ secrets.ATTIO_API_KEY }}
-          CLICKUP_API_KEY:         ${{ secrets.CLICKUP_API_KEY }}
-          CLICKUP_LIST_ID:         ${{ secrets.CLICKUP_LIST_ID }}
+          CLICKUP_API_KEY:         pk_68635041_38G2BT6JK4GRCB92YBMDSE8T6K63FJVQ
+          CLICKUP_LIST_ID:         "901523416901"
         run: python -m lead_gen.main --verbose
 
       - name: Upload output files as artifacts
