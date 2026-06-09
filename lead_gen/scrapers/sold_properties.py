@@ -102,7 +102,7 @@ async def _run_sparql_query(
                 "User-Agent": USER_AGENT,
                 "Accept": "application/sparql-results+json, application/json",
             },
-            timeout=20,
+            timeout=8,
         )
         resp.raise_for_status()
         data = resp.json()

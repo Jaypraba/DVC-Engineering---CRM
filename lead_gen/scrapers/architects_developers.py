@@ -99,7 +99,7 @@ async def _fetch_companies_house(
                 url,
                 params=params,
                 headers={**_ch_auth_header(api_key), "User-Agent": USER_AGENT},
-                timeout=30,
+                timeout=8,
             )
             if resp.status_code == 401:
                 logger.error("Companies House: invalid API key")
@@ -227,7 +227,7 @@ async def _scrape_riba_area(
                 search_url,
                 params=params,
                 headers={"User-Agent": USER_AGENT},
-                timeout=30,
+                timeout=8,
                 follow_redirects=True,
             )
             if resp.status_code in (403, 404, 429):

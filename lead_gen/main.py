@@ -41,7 +41,7 @@ LOG_FILE = Path(__file__).parent.parent / "leads_log.txt"
 ALL_SOURCES = ["planning", "job_boards", "sold_properties", "architects"]
 
 # Hard cap per scraper — pipeline won't hang even if a source is completely unresponsive
-SOURCE_TIMEOUT_SECONDS = 600  # 10 minutes per source
+SOURCE_TIMEOUT_SECONDS = 120  # 2 minutes per source — all 4 run in parallel so total ≤ 2 min
 
 
 def _setup_logging(verbose: bool = False) -> None:
@@ -85,7 +85,7 @@ async def run_pipeline(
     # ── 1. Run all scrapers concurrently ──────────────────────────────────────
     logger.info("Running all scrapers in parallel …")
 
-    tasks: dict[str, asyncio.coroutine] = {}
+    tasks: dict = {}
     if "planning" in sources:
         tasks["planning"] = scrape_planning_portal()
     if "job_boards" in sources:

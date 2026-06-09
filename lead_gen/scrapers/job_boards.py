@@ -128,7 +128,7 @@ async def _scrape_checkatrade(client: httpx.AsyncClient) -> list[Lead]:
                 resp = await client.get(
                     url,
                     headers={"User-Agent": USER_AGENT},
-                    timeout=30,
+                    timeout=8,
                     follow_redirects=True,
                 )
                 if resp.status_code == 404:
@@ -219,7 +219,7 @@ async def _scrape_rated_people(client: httpx.AsyncClient) -> list[Lead]:
                 resp = await client.get(
                     url,
                     headers={"User-Agent": USER_AGENT},
-                    timeout=30,
+                    timeout=8,
                     follow_redirects=True,
                 )
                 if resp.status_code in (403, 404):
@@ -307,7 +307,7 @@ async def _scrape_mybuilder(client: httpx.AsyncClient) -> list[Lead]:
                 resp = await client.get(
                     url,
                     headers={"User-Agent": USER_AGENT},
-                    timeout=30,
+                    timeout=8,
                     follow_redirects=True,
                 )
                 if resp.status_code in (403, 404):

@@ -100,7 +100,7 @@ async def _fetch_planning_data_gov(
     results: list[dict] = []
     while True:
         try:
-            resp = await client.get(url, params=params, timeout=30)
+            resp = await client.get(url, params=params, timeout=8)
             resp.raise_for_status()
             data = resp.json()
         except Exception as exc:
@@ -175,7 +175,7 @@ async def _fetch_planit(
     results: list[dict] = []
     while True:
         try:
-            resp = await client.get(url, params=params, timeout=30)
+            resp = await client.get(url, params=params, timeout=8)
             resp.raise_for_status()
             data = resp.json()
         except Exception as exc:
@@ -225,7 +225,7 @@ async def _fetch_pld(
     results: list[dict] = []
     while True:
         try:
-            resp = await client.get(url, params=params, headers=headers, timeout=30)
+            resp = await client.get(url, params=params, headers=headers, timeout=8)
             resp.raise_for_status()
             data = resp.json()
         except Exception as exc:
@@ -300,7 +300,7 @@ async def _scrape_idox_search(
             search_url,
             data=form_data,
             headers={"User-Agent": USER_AGENT},
-            timeout=30,
+            timeout=8,
             follow_redirects=True,
         )
         soup = BeautifulSoup(resp.text, "html.parser")
