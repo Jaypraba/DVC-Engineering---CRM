@@ -230,3 +230,27 @@ input, select, textarea {
 @media (max-width: 768px) {
   .toast-container { right: 50%; transform: translateX(50%); bottom: 80px; }
 }
+
+/* ── Public marketing site ─────────────────────────────────────────────── */
+.mkt-h1 { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 42px; line-height: 1.1; color: var(--navy); margin: 0 0 16px; }
+.mkt-h2 { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 28px; line-height: 1.15; color: var(--navy); margin: 0 0 12px; }
+.mkt-h3 { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 20px; color: var(--navy); margin: 0 0 8px; }
+.mkt-lede { font-size: 17px; line-height: 1.6; color: var(--ink-secondary); margin: 0 0 24px; max-width: 640px; }
+.mkt-body { font-size: 15px; line-height: 1.7; color: var(--ink-secondary); }
+.mkt-section { margin-bottom: 56px; }
+
+.mkt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px; }
+
+.mkt-card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius-card); box-shadow: var(--shadow-card); padding: 20px; }
+
+.mkt-faq summary { cursor: pointer; font-weight: 600; color: var(--navy); padding: 14px 0; list-style: none; }
+.mkt-faq summary::-webkit-details-marker { display: none; }
+.mkt-faq summary::before { content: '+'; color: var(--orange); font-weight: 800; margin-right: 10px; }
+.mkt-faq details[open] summary::before { content: '−'; }
+.mkt-faq details { border-bottom: 1px solid var(--border); }
+.mkt-faq p { margin: 0 0 16px; color: var(--ink-secondary); font-size: 14px; line-height: 1.6; }
+
+@media (max-width: 640px) {
+  .mkt-h1 { font-size: 32px; }
+  .mkt-h2 { font-size: 24px; }
+}

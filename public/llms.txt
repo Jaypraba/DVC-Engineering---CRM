@@ -1,0 +1,25 @@
+# DVC Engineering Ltd
+
+> DVC Engineering is a structural engineering consultancy based in London (EC2A 4NE), providing structural calculations, drawings and Building Regulations support for residential and commercial projects across London, Surrey, Sussex and the Midlands. Contact: enquiries@dvceng.com.
+
+## Services
+
+- [Loft Conversions](https://www.dvceng.com/services#loft-conversions): Structural design for loft, dormer and mansard conversions, including new floor joists, steel beams and roof alterations.
+- [Rear Extensions](https://www.dvceng.com/services#rear-extensions): Calculations and drawings for single and two-storey rear extensions, covering beams, foundations and steelwork.
+- [Side Extensions](https://www.dvceng.com/services#side-extensions): Structural design for side return and infill extensions.
+- [Front Extensions & Porches](https://www.dvceng.com/services#front-extensions): Structural calculations for front extensions and porch additions.
+- [New Builds](https://www.dvceng.com/services#new-builds): Full structural design for new residential dwellings, from foundations through to roof structure.
+- [Basements & Underpinning](https://www.dvceng.com/services#basements): Structural design for basement excavations, lower ground floor conversions and underpinning works.
+- [Garage Conversions](https://www.dvceng.com/services#garage-conversions): Structural checks and design for converting garages into habitable living space.
+- [Structural Alterations](https://www.dvceng.com/services#structural-alterations): Load-bearing wall removal, steel beam (RSJ) installation and structural openings.
+- [Outbuildings & Garden Rooms](https://www.dvceng.com/services#outbuildings): Structural design for garden rooms, summer houses and ancillary buildings.
+- [Commercial Projects](https://www.dvceng.com/services#commercial): Structural surveys and calculations for change of use, mixed-use and commercial fit-out projects.
+
+## Coverage
+
+- [Areas We Cover](https://www.dvceng.com/areas-we-cover): All 32 London boroughs plus the City of London, Surrey, West Sussex, East Sussex & Brighton, Birmingham & the West Midlands, and the Milton Keynes / Northamptonshire / Luton corridor.
+
+## Other
+
+- [FAQ](https://www.dvceng.com/faq): Common questions about structural engineering, planning permission, Building Regulations and party wall agreements.
+- [Contact](https://www.dvceng.com/contact): Get in touch for a quote.
