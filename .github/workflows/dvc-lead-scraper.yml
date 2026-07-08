@@ -1,0 +1,49 @@
+name: DVC Daily Lead Scrape
+
+on:
+  schedule:
+    # Two triggers to cover both UK clock states (GMT / BST).
+    # main.py checks the real Europe/London time and exits early
+    # on the trigger that doesn't correspond to 15:00 local time,
+    # so only one of these actually does the work on any given day.
+    - cron: "0 14 * * *"   # 15:00 BST (Apr-Oct)
+    - cron: "0 15 * * *"   # 15:00 GMT (Oct-Apr)
+  workflow_dispatch:
+    inputs:
+      force_run:
+        description: "Run immediately regardless of UK local time"
+        required: false
+        default: "true"
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: dvc-lead-scraper
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: dvc-lead-scraper/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run lead scraper
+        env:
+          FORCE_RUN: ${{ github.event.inputs.force_run }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          LEAD_EMAIL_TO: ${{ secrets.LEAD_EMAIL_TO }}
+          LEAD_EMAIL_FROM: ${{ secrets.LEAD_EMAIL_FROM }}
+          GOOGLE_CSE_API_KEY: ${{ secrets.GOOGLE_CSE_API_KEY }}
+          GOOGLE_CSE_CX: ${{ secrets.GOOGLE_CSE_CX }}
+        run: python scripts/main.py

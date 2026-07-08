@@ -203,3 +203,29 @@ create policy "Service role full access - projects" on projects
   for all using (auth.role() = 'service_role');
 create policy "Service role full access - project_phases" on project_phases
   for all using (auth.role() = 'service_role');
+
+-- Raw output of dvc-lead-scraper/ (free-source scraper: planning portal,
+-- Contracts Finder, Google CSE social monitor). Deliberately separate from
+-- the `leads` table above, which has an incompatible schema driven by the
+-- lead_gen/ planning-application pipeline.
+create table if not exists scraped_leads (
+  id uuid primary key default gen_random_uuid(),
+  source text not null,
+  title text,
+  url text unique,
+  location text,
+  postcode text,
+  score int,
+  keywords_matched text[],
+  raw_reference text,
+  date_found timestamptz default now(),
+  status text default 'new'
+);
+
+create index if not exists scraped_leads_source_idx on scraped_leads(source);
+create index if not exists scraped_leads_score_idx on scraped_leads(score desc);
+
+alter table scraped_leads enable row level security;
+
+create policy "Service role full access - scraped_leads" on scraped_leads
+  for all using (auth.role() = 'service_role');

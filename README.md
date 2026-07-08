@@ -64,6 +64,20 @@ git push origin main
 | `DIRECTOR_EMAIL` | jesan@dvceng.com |
 | `CRON_SECRET` | Random 32+ char string |
 
+## Lead Sourcing Pipelines
+
+Two independent Python pipelines feed leads, run as separate GitHub Actions
+(not Vercel cron, since they need longer runtimes / scheduled scraping):
+
+| Pipeline | Workflow | Writes to | Purpose |
+|---|---|---|---|
+| `lead_gen/` | `.github/workflows/lead-gen.yml` | `leads` table | Full scoring + AI outreach draft pipeline across planning apps, job boards, sold properties, architects/developers |
+| `dvc-lead-scraper/` | `.github/workflows/dvc-lead-scraper.yml` | `scraped_leads` table | Lightweight daily digest (3pm UK) from three free sources — London Planning Datahub, Contracts Finder, Google CSE social monitor — emailed via Resend |
+
+`scraped_leads` is intentionally separate from `leads` (see `db/schema.sql`) —
+the two pipelines have incompatible row shapes. See each folder's own README
+for setup and required secrets.
+
 ## Cron Jobs (Vercel)
 
 | Schedule | Route | Action |
