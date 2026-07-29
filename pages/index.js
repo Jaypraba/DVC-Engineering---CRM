@@ -70,6 +70,7 @@ const NAV_ITEMS = [
   { id: 'alerts', label: 'Alerts', icon: '⚑' },
   { id: 'financial', label: 'Financial', icon: '£' },
   { id: 'apisetup', label: 'API Setup', icon: '⚙' },
+  { id: 'travel', label: 'Travel Deals', icon: '✈', href: '/travel' },
 ];
 const BOTTOM_NAV = ['dashboard','leads','projects','email','alerts'];
 
@@ -121,7 +122,7 @@ function Sidebar({ view, setView, user, onLogout, alertCount }) {
         {NAV_ITEMS.map(item => {
           const active = view === item.id;
           return (
-            <button key={item.id} onClick={() => setView(item.id)}
+            <button key={item.id} onClick={() => item.href ? (window.location.href = item.href) : setView(item.id)}
               style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '10px 20px', border: 'none', background: active ? '#FEF0E6' : 'transparent', color: active ? '#F4822A' : '#3d4f6b', fontFamily: "'Barlow', sans-serif", fontSize: 14, fontWeight: active ? 600 : 400, cursor: 'pointer', borderLeft: active ? '3px solid #F4822A' : '3px solid transparent', textAlign: 'left', transition: '150ms all', position: 'relative' }}>
               <span style={{ fontSize: 16, width: 20, textAlign: 'center' }}>{item.icon}</span>
               {item.label}

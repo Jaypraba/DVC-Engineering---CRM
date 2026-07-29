@@ -63,6 +63,9 @@ git push origin main
 | `PLANNING_API_KEY` | api.planning.org.uk key |
 | `DIRECTOR_EMAIL` | jesan@dvceng.com |
 | `CRON_SECRET` | Random 32+ char string |
+| `AMADEUS_CLIENT_ID` | Amadeus API client ID (Travel Deals) |
+| `AMADEUS_CLIENT_SECRET` | Amadeus API client secret |
+| `AMADEUS_ENV` | `test` (default, free sandbox) or `production` |
 
 ## Cron Jobs (Vercel)
 
@@ -70,6 +73,17 @@ git push origin main
 |----------|-------|--------|
 | `0 7 * * *` | `/api/cron/daily-intelligence` | Stagnancy digest, reminders, re-engagement, lapse warnings |
 | `0 8 * * 1` | `/api/cron/weekly-reengage` | Weekly re-engagement emails |
+| `0 6 * * *` | `/api/cron/travel-deals` | Scan saved travel alerts, email matching flight deals |
+
+## Travel Deals Finder (`/travel`)
+
+AI-powered flight and hotel deal hunter built into the CRM:
+
+- **AI Search** — describe a trip in plain English ("cheap week in Portugal in September under £200"). Claude parses it into structured parameters, Amadeus returns live fares/rates, and each result is scored against the route's historical price quartiles. Fares at or near the historical minimum (or 45%+ below median) are flagged **CLEARANCE**. When no destination is given, the finder sweeps the cheapest destinations from your origin. Flexible dates trigger a cheapest-date sweep on the route. Claude then writes a short verdict on whether to book now.
+- **Clearance Fares** — live error fares and flash sales aggregated from Secret Flying, Fly4free and The Flight Deal RSS feeds, with Claude extracting routes and prices from headlines. Error/mistake fares are badged and sorted first.
+- **Deal Alerts** — save a route (or origin → anywhere) with a price cap and discount threshold. A daily cron scans fares, dedupes against previously-seen deals, and emails you via Resend when something qualifies.
+
+Setup: create free API keys at [developers.amadeus.com](https://developers.amadeus.com), set `AMADEUS_CLIENT_ID`/`AMADEUS_CLIENT_SECRET`, and run `db/travel-schema.sql` in the Supabase SQL editor. The free test tier covers development; switch `AMADEUS_ENV=production` with live keys for real bookable fares.
 
 ## Default Credentials
 
