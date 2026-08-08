@@ -98,6 +98,15 @@ carefully authored 85-URL `public/sitemap.xml` is not what Google fetches. The
 `lastDownloaded` and URL-count fields in the diagnostics output will confirm or rule this
 out.
 
+## Second open risk: identical no-JS body content on every route
+
+The static fallback inside `<div id="root">` in `index.html` is homepage-specific, and the
+same shell is served for all ~85 routes. Any crawler that does not execute JavaScript sees
+identical body content on every URL. Base44's July 2026 crawler prerendering should replace
+this with per-route content, but that could not be verified without access to the live site.
+If, after the canonical fix is live, pages are crawled but reported as duplicates, per-route
+prerendered content is the next thing to address.
+
 ## Honest limit
 
 Google indexing cannot be forced programmatically. The Indexing API only supports
