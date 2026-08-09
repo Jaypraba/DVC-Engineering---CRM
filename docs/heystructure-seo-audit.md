@@ -117,3 +117,73 @@ What is achievable is removing every technical blocker and confirming via URL In
 that Google reports the pages as fetchable, indexable and canonically correct. Index
 inclusion then follows on Google's own schedule — typically days to a few weeks for a new
 domain.
+
+---
+
+# Correction (2026-08-09) — the reported blockers were a false positive
+
+## What was wrong with the earlier diagnosis
+
+The 2026-08-08 entry above reported that Googlebot could not fetch the domain, based on
+`seoDiagnostics` flagging robots.txt disallow + noindex + fetch failure on all 10 sampled
+URLs. **That was a bug in `buildDiagnosis`, not a real condition.**
+
+Google returns `ROBOTS_TXT_STATE_UNSPECIFIED`, `INDEXING_STATE_UNSPECIFIED` and an empty
+`pageFetchState` for any URL it has *never crawled*. The original logic treated anything
+that was not `ALLOWED` / `INDEXING_ALLOWED` / `SUCCESSFUL` as a failure, so silence was
+reported as refusal. Every sampled URL actually had
+`coverageState: "URL is unknown to Google"` and `verdict: NEUTRAL` — undiscovered, not
+blocked.
+
+Fixed by an `isUnprocessed()` guard in `base44/functions/seoDiagnostics/entry.ts`, applied
+in both `summariseInspection()` and `buildDiagnosis()`.
+
+## What a live origin probe actually found
+
+Probed from Base44's network with both browser and Googlebot user-agents:
+
+- **robots.txt** — HTTP 200, `text/plain`, correct content (`Allow: /`, only `/admin`
+  disallowed). `disallowsEverything: false`. **Not blocking.**
+- **X-Robots-Tag** — absent on every response. **No hosting-layer noindex.**
+- **Googlebot vs browser** — identical responses, `statusDiffers: false`. **No cloaking or
+  bot-blocking.**
+- **Redirect direction** — `www.heystructure.com` → 301 → `heystructure.com`. The apex
+  serves; the www form redirects. This is the reverse of the usual convention and, more
+  importantly, the reverse of what the rest of the site assumes.
+
+## The two real problems
+
+### 1. The published frontend is Base44's default scaffold, not this codebase
+
+The HTML actually served differs from `index.html` in the repo:
+
+| Element | Repo | Served live |
+|---|---|---|
+| `<title>` | `Structural Engineers London & UK \| Hey Structure` | `Hey Structure` |
+| description | `Building Control ready structural calculations…` | `Hey Structure manages 3 data types including leads…` (Base44 boilerplate) |
+| canonical | `https://www.heystructure.com/` | absent |
+| JSON-LD | ProfessionalService + WebSite + FAQPage | absent |
+| no-JS fallback | full static content block | absent |
+
+Backend functions deploy independently of the frontend build, which is why
+`seoDiagnostics` runs correctly while the served HTML is still the scaffold. The frontend
+has not been published. Until it is, Google would find a generic page with no canonical
+and no structured data even once it does crawl.
+
+### 2. Host inconsistency
+
+The server redirects www → apex, but the repo canonical, the JSON-LD `@id`s, `og:url`, and
+`public/sitemap.xml` all use www, while the live platform-managed sitemap uses the apex.
+`index.html` now derives the canonical from `window.location.origin` (falling back to the
+production origin on non-heystructure.com hosts), so it stays correct whichever direction
+the redirect ends up pointing. The remaining decision is which host is canonical, and then
+aligning the sitemap and JSON-LD to it.
+
+## Why the site is not indexed
+
+Not a block. Google has never crawled it. The domain is new, the sitemap submission was
+only accepted on 2026-08-06 (acceptance is not the same as being fetched), and there are
+few or no inbound links. Publishing the frontend and settling the host are what make the
+crawl worth something when it happens.
+
+Committed as `3a245c98a16b8f36b774c4390afbf2606b062c9f`.
