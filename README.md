@@ -64,6 +64,18 @@ git push origin main
 | `DIRECTOR_EMAIL` | jesan@dvceng.com |
 | `CRON_SECRET` | Random 32+ char string |
 
+## MCP Servers
+
+`.mcp.json` registers project-scoped MCP servers for Claude Code.
+
+| Server | Transport | Endpoint |
+|--------|-----------|----------|
+| `perspective` | HTTP | `https://api.perspective.co/mcp` |
+
+The Perspective server uses OAuth — run `/mcp` in an interactive Claude Code
+session (or `claude mcp list`) and authorize it once. Non-interactive sessions
+cannot complete the OAuth flow.
+
 ## Cron Jobs (Vercel)
 
 | Schedule | Route | Action |
