@@ -10,11 +10,12 @@ A production full-stack CRM for DVC Engineering Ltd — a structural engineering
 | Database | Supabase (Postgres + RLS) |
 | Email | Resend (`crm@dvceng.com`) |
 | AI Generation | Anthropic Claude (claude-sonnet-4-20250514) |
+| Business Agents | Symphony (`/api/symphony`) |
 | Calendar | Microsoft Graph API (O365) |
 | Hosting | Vercel (with cron jobs) |
 | Auth | JWT (HttpOnly cookies + localStorage) |
 
-## Setup (6 Steps)
+## Setup (7 Steps)
 
 ### 1 — Supabase
 1. Create a new project at supabase.com
@@ -38,7 +39,14 @@ See `docs/azure-setup.md` for full steps.
 Request a key: `GET https://api.planning.org.uk/v1/generatekey?email=jesan@dvceng.com`
 Set → `PLANNING_API_KEY`
 
-### 6 — Deploy to Vercel
+### 6 — Symphony (AI Agent Team)
+1. In Symphony → Settings → Connections, create a connection token
+2. Set → `SYMPHONY_API_TOKEN`
+3. Verify: `./scripts/symphony.sh "Connection check"`
+
+See `docs/symphony-setup.md` for full steps.
+
+### 7 — Deploy to Vercel
 ```bash
 git push origin main
 # Import repo at vercel.com, add all env vars, deploy
@@ -56,6 +64,9 @@ git push origin main
 | `RESEND_API_KEY` | Resend API key |
 | `EMAIL_FROM` | crm@dvceng.com |
 | `ANTHROPIC_API_KEY` | Anthropic API key |
+| `SYMPHONY_API_TOKEN` | Symphony agent token (acts as the director) |
+| `SYMPHONY_API_BASE` | Symphony API base URL (optional) |
+| `SYMPHONY_SESSION_ID` | Symphony thread ID (optional, default `dvc-crm`) |
 | `MS_TENANT_ID` | Azure tenant ID |
 | `MS_CLIENT_ID` | Azure app client ID |
 | `MS_CLIENT_SECRET` | Azure client secret |
