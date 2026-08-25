@@ -44,6 +44,8 @@ Set → `PLANNING_API_KEY`
 2. Set → `SYMPHONY_API_TOKEN`
 3. Verify: `./scripts/symphony.sh "Connection check"`
 
+This also covers the Symphony-reviewed daily digest in the DVC Engineering Base44 app.
+
 See `docs/symphony-setup.md` for full steps.
 
 ### 7 — Deploy to Vercel

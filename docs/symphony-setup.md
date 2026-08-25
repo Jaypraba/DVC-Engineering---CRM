@@ -91,3 +91,38 @@ The script reads `SYMPHONY_API_TOKEN` from the environment, falling back to `.en
 - The token grants the ability to act as the director. Never commit it — `.env.local` is git-ignored, and `.env.local.example` carries a placeholder only.
 - Both API routes are gated behind `requireAuth` and a director/admin role check. Do not relax this: any authenticated CRM user with access could otherwise send outreach as the director.
 - Rotate the token in Symphony → Settings → Connections if it is ever pasted into a chat, log, or ticket.
+
+---
+
+## Base44 — DVC Engineering App
+
+Symphony is not in Base44's connector catalogue, so the Base44 side uses the same REST approach as the CRM: a backend function calling Symphony directly.
+
+**Function:** `base44/functions/dailyDigest/entry.ts` in the DVC Engineering app.
+
+Each run pulls the `Enquiry` pipeline, sends Symphony a briefing, and emails the digest with Symphony's prioritised actions:
+
+- New enquiries in the last 24 hours
+- Open enquiries, and which are unassigned
+- Overdue follow-ups (`followUpDate` in the past, not Won/Lost/Spam)
+- Quoted pipeline value
+
+### Secrets to set in the Base44 app
+
+| Secret | Required | Default | Description |
+|--------|----------|---------|-------------|
+| `SYMPHONY_API_TOKEN` | For recommendations | — | Without it the digest still sends, noting Symphony is unconfigured |
+| `CRON_SECRET` | Recommended | — | Scheduled callers send it as the `x-cron-secret` header. Without it, only a signed-in admin can trigger the function. |
+| `SYMPHONY_API_BASE` | No | `https://symphony.wix.com/individuals-chat/poc/agent` | API base URL |
+| `SYMPHONY_SESSION_ID` | No | `dvc-engineering-digest` | Keeps the digest in its own Symphony thread |
+| `SYMPHONY_TIMEOUT_MS` | No | `90000` | How long to wait for Symphony before sending without recommendations |
+| `DIGEST_EMAIL_TO` | No | `jesan@dvceng.com` | Digest recipient |
+
+### Scheduling
+
+Point a daily Base44 automation or an external scheduler at the `dailyDigest` function, sending the `x-cron-secret` header. Base44 functions run on Base44's infrastructure, so they are not affected by egress limits on other environments.
+
+### Behaviour Notes
+
+- **Symphony is advisory, never blocking.** If it is unconfigured, times out, or errors, the digest still goes out with the pipeline numbers intact and a line explaining why the recommendations are missing. The JSON response reports which happened via `symphony: answered | timeout | error | not_configured`.
+- **Enquiry text is untrusted.** It arrives through a public website form and ends up in a prompt, so it is stripped of control characters, length-capped, and labelled as data in the briefing. Symphony is told explicitly to treat it as content to summarise, not instructions to follow.
