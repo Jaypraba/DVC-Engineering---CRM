@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-paper text-ink font-body antialiased;
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  ::selection {
+    @apply bg-accent text-ink;
+  }
+
+  /* Focus is never removed, only restyled. */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ink ring-offset-2 ring-offset-paper;
+  }
+
+  .on-ink :focus-visible {
+    @apply ring-accent ring-offset-ink;
+  }
+}
+
+@layer components {
+  /* Hairlines carry a lot of the layout. One weight, one colour. */
+  .rule {
+    @apply border-t border-grey-200;
+  }
+
+  .rule-ink {
+    @apply border-t border-white/15;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
