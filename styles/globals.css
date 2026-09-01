@@ -1,5 +1,62 @@
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap');
 
+/* ── Tailwind ─────────────────────────────────────────────────────────────
+ * Added for the shadcn component layer (components/ui). Preflight is disabled
+ * in tailwind.config.ts so Tailwind cannot reset the CRM styles below; the two
+ * resets its utilities genuinely need are re-added in @layer base, which the
+ * CRM's own unlayered rules still outrank.
+ * ─────────────────────────────────────────────────────────────────────── */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Preflight normally does this. Tailwind's `border-*` utilities only set a
+     width, so without a default style a `border` class renders nothing. Both
+     values are needed together: setting style alone would give every element
+     the CSS default `medium` width. Layered, so CRM borders win. */
+  *,
+  ::before,
+  ::after {
+    border-width: 0;
+    border-style: solid;
+    border-color: hsl(var(--ui-border));
+  }
+}
+
+/* shadcn design tokens, namespaced.
+ *
+ * These are `--ui-*` rather than the stock shadcn names on purpose: this file
+ * already defines `--border: #E4E0D8`, and shadcn's `--border` is an HSL
+ * triplet. Sharing the name would resolve every CRM border to an invalid
+ * value and silently erase borders across the dashboard.
+ *
+ * Values are the DVC palette converted to HSL, so shadcn components inherit
+ * the product's identity instead of stock slate. */
+:root {
+  --ui-background: 40 18% 97%;          /* --cream  #F8F7F5 */
+  --ui-foreground: 216 60% 10%;         /* --navy   #0A1628 */
+  --ui-card: 0 0% 100%;
+  --ui-card-foreground: 216 60% 10%;
+  --ui-popover: 0 0% 100%;
+  --ui-popover-foreground: 216 60% 10%;
+  --ui-primary: 26 90% 56%;             /* --orange #F4822A */
+  --ui-primary-foreground: 0 0% 100%;
+  --ui-secondary: 40 18% 93%;
+  --ui-secondary-foreground: 216 60% 10%;
+  --ui-muted: 40 18% 93%;
+  --ui-muted-foreground: 216 15% 60%;   /* --ink-light #8a96a8 */
+  --ui-accent: 25 92% 95%;              /* --orange-soft #FEF0E6 */
+  --ui-accent-foreground: 216 60% 10%;
+  --ui-destructive: 6 63% 46%;          /* --danger #c0392b */
+  --ui-destructive-foreground: 0 0% 100%;
+  --ui-border: 40 18% 87%;              /* --border #E4E0D8 */
+  --ui-input: 40 18% 87%;
+  --ui-ring: 26 90% 56%;
+  --ui-radius: 10px;                    /* --radius-card */
+}
+
+
 *, *::before, *::after { box-sizing: border-box; }
 
 html, body {
