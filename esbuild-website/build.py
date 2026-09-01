@@ -81,6 +81,78 @@ def phone_link(classes, label, block=False):
     return '<a class="%s" href="contact.html">%s</a>' % (classes, label)
 
 
+# ---------------------------------------------------------------------------
+# VISUALS
+#
+# Every image slot below prefers a real photograph. Drop a file named
+# "<slot>.jpg" (or .jpeg/.png/.webp) into assets/img/photos/ and it is picked up
+# automatically on the next build. Until then the slot renders the matching
+# architectural illustration from assets/img/illustrations/, which is clearly a
+# drawing rather than a photograph - so nothing on the site implies work that
+# has not been photographed.
+# ---------------------------------------------------------------------------
+PHOTO_DIR = "assets/img/photos"
+ILLUS_DIR = "assets/img/illustrations"
+
+ILLUS_ALT = {
+    "extensions":
+        "Architectural elevation: a new single-storey rear extension drawn as a solid "
+        "navy mass alongside the existing house in outline.",
+    "loft-conversions":
+        "Architectural section through a house roof, showing a new dormer and loft floor "
+        "in solid navy with a staircase rising into the roof space.",
+    "refurbishments":
+        "Cutaway architectural section of a house, showing the retained shell in outline "
+        "and fully renewed rooms, floors and staircase in solid navy.",
+    "kitchens-bathrooms":
+        "Interior elevation of a fitted kitchen with base and wall units, worktop, sink "
+        "and a bath alongside.",
+    "structural-alterations":
+        "Structural elevation: a new steel beam spanning a formed opening, bearing onto "
+        "padstones, with arrows showing the load carried from the wall above.",
+    "commercial":
+        "Elevation of a commercial building with a glazed upper facade and a new "
+        "ground-floor shopfront and signage band in solid navy.",
+    "skyline":
+        "Illustrated roofline of London terraces and buildings.",
+}
+
+
+def visual(slot, illus=None, alt=None, classes="", ratio=None, lazy=True):
+    """A photograph if one has been supplied for this slot, otherwise the illustration."""
+    src, a = None, alt
+    for ext in (".jpg", ".jpeg", ".png", ".webp"):
+        candidate = "%s/%s%s" % (PHOTO_DIR, slot, ext)
+        if os.path.exists(os.path.join(HERE, candidate)):
+            src = candidate
+            break
+    if src is None:
+        if illus is None:
+            return ""
+        src = "%s/illus-%s.svg" % (ILLUS_DIR, illus)
+        a = alt or ILLUS_ALT.get(illus, "")
+    attrs = ' class="%s"' % classes if classes else ""
+    attrs += ' loading="lazy" decoding="async"' if lazy else ""
+    if ratio:
+        attrs += ' width="%s" height="%s"' % ratio
+    return '<img src="%s" alt="%s"%s>' % (src, a, attrs)
+
+
+def figure(slot, illus, alt=None, caption=None):
+    cap = '\n            <figcaption>%s</figcaption>' % caption if caption else ""
+    return ('<figure class="figure">\n            %s%s\n        </figure>'
+            % (visual(slot, illus, alt, ratio=("800", "600")), cap))
+
+
+def hero_photo_attrs():
+    """Homepage hero uses a photograph as a tinted background when one exists."""
+    for ext in (".jpg", ".jpeg", ".png", ".webp"):
+        p = "%s/hero%s" % (PHOTO_DIR, ext)
+        if os.path.exists(os.path.join(HERE, p)):
+            return ' has-photo" style="--hero-photo:url(\'%s\')' % p
+    return ''
+
+
 ARROW = ('<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" '
          'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
          '<path d="M2 8h11"/><path d="M9 4l4 4-4 4"/></svg>')
@@ -310,9 +382,10 @@ def page_hero(title, lead, eyebrow, crumbs, page):
 '''
 
 
-def checklist(items):
+def checklist(items, cols=2):
     lis = "\n".join('            <li>%s</li>' % i for i in items)
-    return '        <ul class="checklist">\n%s\n        </ul>' % lis
+    style = '' if cols == 2 else ' style="grid-template-columns:repeat(%d,minmax(0,1fr))"' % cols
+    return '        <ul class="checklist"%s>\n%s\n        </ul>' % (style, lis)
 
 
 PAGES = {}
@@ -387,12 +460,12 @@ PROCESS = [
 ]
 
 PROJECT_CATEGORIES = [
-    ("Extensions", "Rear, side-return, wraparound and multi-storey additions."),
-    ("Loft conversions", "Dormers, hip-to-gable alterations and rooflight conversions."),
-    ("Full refurbishments", "Whole-property renewal, strip-out and reconfiguration."),
-    ("Kitchens and bathrooms", "Coordinated building work, services and installation."),
-    ("Structural alterations", "Wall removals, steelwork and new openings."),
-    ("Commercial projects", "Office refurbishments, retail fit-outs and landlord works."),
+    ("Extensions", "Rear, side-return, wraparound and multi-storey additions.", "extensions"),
+    ("Loft conversions", "Dormers, hip-to-gable alterations and rooflight conversions.", "loft-conversions"),
+    ("Full refurbishments", "Whole-property renewal, strip-out and reconfiguration.", "refurbishments"),
+    ("Kitchens and bathrooms", "Coordinated building work, services and installation.", "kitchens-bathrooms"),
+    ("Structural alterations", "Wall removals, steelwork and new openings.", "structural-alterations"),
+    ("Commercial projects", "Office refurbishments, retail fit-outs and landlord works.", "commercial"),
 ]
 
 
@@ -414,17 +487,15 @@ def service_card(key, title, href, cta, body, wide=False):
             </article>'''
 
 
-def project_placeholder_card(title, blurb):
+def category_card(title, blurb, illus):
     return f'''            <article class="project-card">
                 <div class="project-media">
-                    <div class="chevron-field" aria-hidden="true"></div>
-                    <img class="placeholder-mark" src="assets/img/logo-mark.png" alt="" width="669" height="512" loading="lazy">
+                    {visual("project-" + illus, illus, ratio=("800", "600"))}
                 </div>
                 <div class="project-body">
-                    <p class="project-meta">{title}</p>
-                    <h3>Project title</h3>
+                    <p class="project-meta">Project category</p>
+                    <h3>{title}</h3>
                     <p>{blurb}</p>
-                    <p class="placeholder">Replace with project photography and details</p>
                 </div>
             </article>'''
 
@@ -449,8 +520,8 @@ _home_steps = "\n".join(
                 </div>
             </li>''' for t, b in PROCESS)
 _home_areas = "\n".join('            <div>%s</div>' % a for a in AREAS)
-_home_projects = "\n".join(project_placeholder_card(t, b) for t, b in PROJECT_CATEGORIES[:6])
-_home_pills = "\n".join('                <li>%s</li>' % t for t, _ in PROJECT_CATEGORIES)
+_home_projects = "\n".join(category_card(*c) for c in PROJECT_CATEGORIES[:6])
+_home_pills = "\n".join('                <li>%s</li>' % c[0] for c in PROJECT_CATEGORIES)
 
 _home_jsonld = '''<script type="application/ld+json">
 {
@@ -467,7 +538,7 @@ PAGES["index.html"] = (
     head("index.html", HOME_TITLE, HOME_DESC)
     + header("index.html")
     + f'''
-<section class="hero">
+<section class="hero{hero_photo_attrs()}">
     <div class="chevron-field" aria-hidden="true"></div>
     <img class="hero-mark" src="assets/img/logo-mark.png" alt="" width="669" height="512" aria-hidden="true">
     <div class="container">
@@ -544,6 +615,7 @@ PAGES["index.html"] = (
         <div class="grid grid--3">
 {_home_projects}
         </div>
+        <p class="form-note mt-lg">Individual case studies, with photography, are published as projects complete.</p>
         <div class="btn-row">
             <a class="btn btn--primary" href="projects.html">View All Projects {ARROW}</a>
         </div>
@@ -575,6 +647,7 @@ PAGES["index.html"] = (
 {_home_areas}
             </div>
             <p class="form-note">If your location is not listed, <a href="contact.html">contact us</a> to discuss whether we can support your project.</p>
+            <div class="banner mt-lg">{visual("coverage", "skyline", ratio=("1600", "400"))}</div>
         </div>
     </div>
 </section>
@@ -594,6 +667,8 @@ PAGES["index.html"] = (
 
 def service_page(page, title, seo_title, description, eyebrow, lead, intro, scope_heading,
                  scope, closing, cta_heading, cta_body, cta_label, related_note=None):
+    slug = page.replace(".html", "")
+    caption = "Illustration &mdash; %s" % eyebrow.lower()
     intro_html = "\n".join('            <p>%s</p>' % p for p in intro)
     closing_html = "\n".join('            <p>%s</p>' % p for p in closing) if closing else ""
     related = "\n".join(
@@ -611,7 +686,7 @@ def service_page(page, title, seo_title, description, eyebrow, lead, intro, scop
             <p class="eyebrow">Overview</p>
             <h2>{scope_heading}</h2>
             <p class="form-note">Related services</p>
-            <ul class="footer-links" style="margin-top:.75rem">
+            <ul class="link-list">
 {related}
             </ul>
         </div>
@@ -627,7 +702,14 @@ def service_page(page, title, seo_title, description, eyebrow, lead, intro, scop
             <p class="eyebrow">Scope of work</p>
             <h2 id="scope-heading">What the work can include</h2>
         </div>
-{checklist(scope)}
+        <div class="split split--even">
+            <div>
+        {figure("service-" + slug, slug, caption=caption)}
+            </div>
+            <div>
+{checklist(scope, cols=1)}
+            </div>
+        </div>
         <div class="mt-lg measure-wide">
 {closing_html}
         </div>
@@ -833,6 +915,7 @@ PAGES["about.html"] = (
         <div>
             <p class="eyebrow">Who we are</p>
             <h2>A contractor you can hold to a scope</h2>
+            {figure("about", "refurbishments", caption="Illustration &mdash; a whole-property refurbishment within a retained shell")}
         </div>
         <div class="stack-sm">
             <p class="lead">We understand that appointing a contractor is a significant decision. Our approach is therefore based on defined scopes, realistic planning, responsible site management and straightforward communication.</p>
@@ -894,8 +977,8 @@ PAGES["about.html"] = (
 # ---------------------------------------------------------------------------
 # PROJECTS
 # ---------------------------------------------------------------------------
-_projects_grid = "\n".join(project_placeholder_card(t, b) for t, b in PROJECT_CATEGORIES)
-_projects_pills = "\n".join('                <li>%s</li>' % t for t, _ in PROJECT_CATEGORIES)
+_projects_grid = "\n".join(category_card(*c) for c in PROJECT_CATEGORIES)
+_projects_pills = "\n".join('                <li>%s</li>' % c[0] for c in PROJECT_CATEGORIES)
 
 PAGES["projects.html"] = (
     head("projects.html",
@@ -921,7 +1004,7 @@ PAGES["projects.html"] = (
         <div class="grid grid--3">
 {_projects_grid}
         </div>
-        <p class="form-note mt-lg">Project entries follow a consistent structure. See <a href="project-template.html">the project page template</a> for the fields recorded against each one.</p>
+        <p class="form-note mt-lg">The grid above shows the categories of work ES Build undertakes. Individual case studies, with project photography, are published as projects complete &mdash; each one follows a consistent structure, set out in <a href="project-template.html">the project page template</a>.</p>
     </div>
 </section>
 
@@ -997,11 +1080,11 @@ PAGES["project-template.html"] = (
         </div>
         <div class="grid grid--2">
             <article class="project-card">
-                <div class="project-media"><div class="chevron-field" aria-hidden="true"></div><img class="placeholder-mark" src="assets/img/logo-mark.png" alt="" width="669" height="512" loading="lazy"></div>
+                <div class="project-media project-media--placeholder"><div class="chevron-field" aria-hidden="true"></div><img class="placeholder-mark" src="assets/img/logo-mark.png" alt="" width="669" height="512" loading="lazy"></div>
                 <div class="project-body"><p class="project-meta">Before</p><p class="placeholder">Add photograph</p></div>
             </article>
             <article class="project-card">
-                <div class="project-media"><div class="chevron-field" aria-hidden="true"></div><img class="placeholder-mark" src="assets/img/logo-mark.png" alt="" width="669" height="512" loading="lazy"></div>
+                <div class="project-media project-media--placeholder"><div class="chevron-field" aria-hidden="true"></div><img class="placeholder-mark" src="assets/img/logo-mark.png" alt="" width="669" height="512" loading="lazy"></div>
                 <div class="project-body"><p class="project-meta">After</p><p class="placeholder">Add photograph</p></div>
             </article>
         </div>
@@ -1046,6 +1129,12 @@ PAGES["areas.html"] = (
         "ES Build undertakes projects throughout Greater London and across South East England.",
         "Coverage", [("Areas We Cover", None)], "areas.html")
     + f'''
+<section class="banner-section">
+    <div class="container">
+        <div class="banner">{visual("coverage", "skyline", ratio=("1600", "400"), lazy=False)}</div>
+    </div>
+</section>
+
 <section class="section">
     <div class="container split">
         <div>

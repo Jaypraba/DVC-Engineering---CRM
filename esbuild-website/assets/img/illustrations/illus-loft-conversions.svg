@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600" role="img">
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#033072" stroke-opacity=".09" stroke-width="1"/>
+    </pattern>
+    <pattern id="hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#033072" stroke-opacity=".28" stroke-width="1.4"/>
+    </pattern>
+  </defs>
+  <rect width="800" height="600" fill="#EDF2F8"/>
+  <rect width="800" height="600" fill="url(#grid)"/>
+  <g fill="none" stroke="#033072" stroke-linecap="square" stroke-linejoin="miter">
+
+    <!-- house section -->
+    <path d="M210 262V520H590V262" stroke-opacity=".5" stroke-width="2"/>
+    <path d="M182 268L400 138L618 268" stroke-opacity=".5" stroke-width="2"/>
+    <line x1="210" y1="392" x2="590" y2="392" stroke-opacity=".5" stroke-width="2"/>
+    <line x1="210" y1="262" x2="590" y2="262" stroke-opacity=".34" stroke-width="1.3"/>
+    <rect x="248" y="428" width="66" height="72" stroke-opacity=".5" stroke-width="2"/>
+    <rect x="486" y="428" width="66" height="72" stroke-opacity=".5" stroke-width="2"/>
+    <rect x="248" y="300" width="66" height="66" stroke-opacity=".5" stroke-width="2"/>
+
+    <!-- new dormer, projecting from the right-hand roof slope -->
+    <path d="M452 200h112v62H452z" fill="#033072" stroke="none"/>
+    <path d="M442 186h132v16H442z" fill="#033072" stroke="none"/>
+    <line x1="489" y1="212" x2="489" y2="252" stroke="#EDF2F8" stroke-opacity=".55" stroke-width="2"/>
+    <line x1="526" y1="212" x2="526" y2="252" stroke="#EDF2F8" stroke-opacity=".55" stroke-width="2"/>
+    <line x1="452" y1="212" x2="564" y2="212" stroke="#EDF2F8" stroke-opacity=".55" stroke-width="2"/>
+
+    <!-- new floor structure and staircase within the roof void -->
+    <line x1="230" y1="262" x2="570" y2="262" stroke-opacity=".55" stroke-width="4"/>
+    <path d="M250 392v-22h26v-22h26v-22h26v-22h26v-22h26v-22h26" stroke-opacity=".55" stroke-width="2.5"/>
+
+    <line x1="50" y1="520" x2="750" y2="520" stroke-opacity=".62" stroke-width="2.5"/>
+    <rect x="50" y="520" width="700" height="14" fill="url(#hatch)" stroke="none"/>
+    <line x1="452" y1="552" x2="452" y2="572" stroke-opacity=".34" stroke-width="1.3"/>
+    <line x1="564" y1="552" x2="564" y2="572" stroke-opacity=".34" stroke-width="1.3"/>
+    <line x1="452" y1="562" x2="564" y2="562" stroke-opacity=".34" stroke-width="1.3"/>
+    <path d="M455 558L464 562L455 566" stroke-opacity=".34" stroke-width="1.3"/>
+    <path d="M561 558L552 562L561 566" stroke-opacity=".34" stroke-width="1.3"/>
+
+  </g>
+</svg>

@@ -120,7 +120,8 @@ strong { color: var(--ink); font-weight: 600; }
 @media (max-width: 620px) { .grid--2, .grid--3, .grid--4 { grid-template-columns: 1fr; } }
 
 .split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: clamp(32px, 6vw, 88px); align-items: start; }
-@media (max-width: 900px) { .split { grid-template-columns: 1fr; } }
+.split--even { grid-template-columns: repeat(2, minmax(0,1fr)); }
+@media (max-width: 900px) { .split, .split--even { grid-template-columns: 1fr; } }
 
 /* --- Buttons ----------------------------------------------------------- */
 .btn {
@@ -260,6 +261,12 @@ body.nav-open .nav-toggle .icon-open  { display: none; }
   pointer-events: none;
 }
 .hero .container { position: relative; z-index: 2; }
+.hero.has-photo::before {
+  content: ""; position: absolute; inset: 0; z-index: 0;
+  background-image: var(--hero-photo); background-size: cover; background-position: center;
+  opacity: .28;
+}
+.hero.has-photo .hero-mark { display: none; }
 .hero-mark {
   position: absolute; right: -5%; top: 46%; transform: translateY(-50%);
   width: min(44%, 580px); opacity: .06; filter: brightness(0) invert(1);
@@ -380,6 +387,14 @@ body.nav-open .nav-toggle .icon-open  { display: none; }
 }
 .section--navy .pill-list li { color: #fff; border-color: rgba(255,255,255,.24); background: rgba(255,255,255,.04); }
 
+/* Inline list of related page links (light backgrounds). */
+.link-list { list-style: none; margin: .85rem 0 0; padding: 0; display: grid; gap: .55rem; }
+.link-list a {
+  color: var(--navy); font-family: var(--ff-display); font-weight: 500; font-size: .95rem;
+  text-decoration: none;
+}
+.link-list a:hover { text-decoration: underline; }
+
 /* --- Areas ------------------------------------------------------------- */
 .area-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 0; border-top: 1px solid var(--line); }
 .area-grid div {
@@ -393,14 +408,40 @@ body.nav-open .nav-toggle .icon-open  { display: none; }
 /* --- Projects ---------------------------------------------------------- */
 .project-card { border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden; background: #fff; display: flex; flex-direction: column; }
 .project-media {
-  position: relative; aspect-ratio: 4 / 3; background: var(--navy-800); display: grid; place-items: center; overflow: hidden;
+  position: relative; aspect-ratio: 4 / 3; background: var(--navy-tint); display: grid; place-items: center; overflow: hidden;
 }
-.project-media img { width: 100%; height: 100%; object-fit: cover; }
-.project-media .placeholder-mark { width: 54px; opacity: .22; filter: brightness(0) invert(1); position: relative; z-index: 2; }
+.project-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* Before/after slots on the project template, which need real photography. */
+.project-media--placeholder { background: var(--navy-800); }
+.project-media--placeholder .placeholder-mark {
+  width: 54px; height: auto; object-fit: contain; opacity: .22;
+  filter: brightness(0) invert(1); position: relative; z-index: 2;
+}
 .project-body { padding: 1.5rem 1.6rem 1.7rem; display: flex; flex-direction: column; gap: .5rem; }
 .project-body h3 { margin: 0; font-size: 1.15rem; }
 .project-meta { font-size: .82rem; letter-spacing: .1em; text-transform: uppercase; color: var(--navy); font-weight: 600; font-family: var(--ff-display); }
 .project-body p { font-size: .95rem; color: var(--muted); margin: 0; }
+
+/* --- Figures and banners ---------------------------------------------- */
+.figure {
+  margin: 0; border: 1px solid var(--line); border-radius: var(--radius-lg);
+  overflow: hidden; background: var(--navy-tint);
+}
+.figure img { width: 100%; height: auto; display: block; }
+.figure figcaption {
+  padding: .8rem 1.15rem; font-size: .84rem; color: var(--muted);
+  background: #fff; border-top: 1px solid var(--line);
+}
+.section--sand .figure { background: #fff; }
+
+.banner {
+  border: 1px solid var(--line); border-radius: var(--radius-lg);
+  overflow: hidden; background: var(--navy-tint);
+}
+.banner img { width: 100%; height: auto; display: block; }
+/* Banner sits tight under the page hero, with the following section's own
+   padding providing the space below. */
+.banner-section { padding-block: clamp(40px, 4.5vw, 64px) 0; }
 
 /* --- FAQ --------------------------------------------------------------- */
 .faq { border-top: 1px solid var(--line); }

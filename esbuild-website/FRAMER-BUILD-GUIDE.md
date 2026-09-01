@@ -154,6 +154,27 @@ The hero also carries the logo mark as a large watermark on the right: white tin
 
 ---
 
+## 6b. Illustrations and photography
+
+`assets/img/illustrations/` holds seven SVG architectural drawings in the brand
+navy. Upload them to Framer's asset library and place them exactly as the HTML
+build does — service page scope sections, the six project-category cards, and the
+coverage banner. They import as SVG and stay crisp at any size.
+
+Their visual language is worth preserving if you redraw anything: **thin outline =
+existing building, solid navy = the new construction**.
+
+**When real photography arrives**, swap the image inside each component — the
+layouts are already sized for it (4:3 for cards and figures, 4:1 for the coverage
+banner, wide landscape for the hero). In Framer, set the homepage hero photo as a
+section background with a `Navy 900` overlay at roughly 70% so the headline keeps
+its contrast.
+
+Keep the "Project category" label on the grid cards until individual case studies
+with real photography exist — the cards describe types of work, not completed jobs.
+
+---
+
 ## 7. CMS collections
 
 Three collections cover the whole site.
