@@ -1,0 +1,159 @@
+# ES Build — website
+
+A complete, self-contained static build of the ES Build website. Every page works
+by opening the `.html` file directly — there is no build step required to view or
+host it.
+
+It doubles as the **reference build for the Framer site**: the structure, styles
+and content here map one-to-one onto Framer pages, styles and CMS collections.
+See [`FRAMER-BUILD-GUIDE.md`](FRAMER-BUILD-GUIDE.md).
+
+---
+
+## Pages
+
+| File | Path in Framer | Purpose |
+| --- | --- | --- |
+| `index.html` | `/` | Homepage |
+| `about.html` | `/about` | About Us |
+| `extensions.html` | `/services/house-extensions` | House Extensions |
+| `loft-conversions.html` | `/services/loft-conversions` | Loft Conversions |
+| `refurbishments.html` | `/services/refurbishments` | Property Refurbishments |
+| `kitchens-bathrooms.html` | `/services/kitchens-and-bathrooms` | Kitchen and Bathroom Renovations |
+| `structural-alterations.html` | `/services/structural-alterations` | Structural Alterations |
+| `commercial.html` | `/services/commercial` | Commercial Construction and Fit-Outs |
+| `projects.html` | `/projects` | Projects index |
+| `project-template.html` | `/projects/:slug` | Layout template for a single project |
+| `areas.html` | `/areas-we-cover` | Coverage |
+| `faqs.html` | `/faqs` | Frequently Asked Questions |
+| `contact.html` | `/contact` | Contact and enquiry form |
+| `privacy.html` | `/privacy-policy` | Privacy Policy (structure only) |
+
+---
+
+## Before this goes live
+
+These are the only things standing between this build and a publishable site.
+
+### 1. Fill in the company details
+
+Open `build.py`, complete the `SITE` dictionary, then run `python3 build.py`.
+Anything left blank renders as a visible striped placeholder rather than a
+plausible-looking fake value, so nothing incorrect can be published by accident.
+
+```python
+SITE = {
+    "domain":        "",   # https://www.esbuild.co.uk — used for canonical URLs
+    "phone_display": "",   # 020 7123 4567
+    "phone_href":    "",   # +442071234567
+    "email":         "",
+    "hours":         "",
+    "company_name":  "",   # Registered company name
+    "company_no":    "",
+    "reg_address":   "",
+    "vat_no":        "",   # if applicable
+    "insurance_confirmed": False,
+}
+```
+
+Until `phone_href` is set, every "Call ES Build" button links to the contact page
+instead of a dead `tel:` link.
+
+### 2. Confirm the insurance answer
+
+The brief marks the "Are you insured?" FAQ **"use only if confirmed"**. It is
+therefore held back — the answer sits commented out in `faqs.html` and is
+excluded from the FAQ structured data. Once cover is verified, set
+`insurance_confirmed = True` and re-run `build.py` to publish it.
+
+### 3. Write the Privacy Policy
+
+`privacy.html` contains the required section structure with a note describing what
+each section must cover. The wording itself needs to be written or reviewed by ES
+Build, and must reflect actual data-handling practice — including the Checkatrade
+widget, which is third-party embedded content.
+
+### 4. Connect the enquiry form
+
+`contact.html` has a complete, validated form that is not yet wired to a handler.
+Set `data-endpoint` on `#enquiry-form` to your form service URL, or replace it with
+Framer's built-in Form component. Until then, submitting shows a notice rather
+than silently failing.
+
+### 5. Add project photography
+
+`projects.html` and the homepage show six placeholder project cards, one per
+category. `project-template.html` shows the full case-study layout and the nine
+fields recorded per project. Replace the placeholders with real photography and
+project detail — this is the single biggest visual upgrade available to the site.
+
+---
+
+## Checkatrade widget
+
+The supplied embed is on **every page**, immediately above the footer:
+
+```html
+<div class="checkatrade-widget" id="checkatrade-widget"></div>
+...
+<script>window._checkatradeConfig = {"companyId":469672,"uniqueName":"ESBuild","theme":"red"};</script>
+<script src="https://www.checkatrade.com/static/js/widget.js"></script>
+```
+
+The config object must be defined **before** the widget script loads — that
+ordering is preserved in the generated pages, so keep it if you move the embed.
+
+---
+
+## Logo assets
+
+All generated from the supplied artwork, which is navy `#033072` on a transparent
+background:
+
+| File | Use |
+| --- | --- |
+| `assets/img/logo-horizontal.png` | Header lockup (mark + wordmark, side by side) |
+| `assets/img/logo-stacked.png` | Original stacked lockup — used in the footer |
+| `assets/img/logo-mark.png` | Chevron mark alone — hero watermark, placeholders |
+| `assets/img/favicon.png`, `favicon-32.png` | Browser tab icon |
+| `assets/img/apple-touch-icon.png` | iOS home-screen icon |
+
+Because the artwork is transparent and single-colour, `filter: brightness(0)
+invert(1)` produces a clean white version for dark backgrounds — that is how the
+footer and hero watermark are rendered, so no separate white asset is needed.
+
+All PNGs are palette-quantised (the artwork is two colours, so this is visually
+lossless): the full image set is **95 KB**, down from 705 KB unoptimised.
+Supplying an **SVG** version of the logo would still be a worthwhile upgrade — it
+would stay crisp at any size and shrink the set further.
+
+---
+
+## Editing
+
+Shared chrome (head, header, footer, CTA band, Checkatrade band) lives in
+`build.py` so it stays identical across all 14 pages. Edit there and re-run:
+
+```bash
+python3 build.py
+```
+
+For one-off copy tweaks you can edit the `.html` files directly — just note that
+re-running `build.py` overwrites them.
+
+Design tokens are all CSS custom properties at the top of `assets/css/site.css`,
+and correspond directly to the Framer colour and text styles listed in the build
+guide.
+
+---
+
+## Accessibility and technical notes
+
+- Skip link, landmark elements and a labelled breadcrumb on every inner page.
+- The nav is keyboard operable; `Escape` closes the menu and any open dropdown.
+- Focus is visible throughout (`:focus-visible`, 2px ring).
+- `prefers-reduced-motion` is respected.
+- FAQs use native `<details>`/`<summary>`, so they work without JavaScript.
+- Structured data: `GeneralContractor` on the homepage, `FAQPage` on the FAQs page.
+- Open Graph and Twitter card tags on every page.
+- All markup validated for correct nesting; all internal links and assets resolve.
